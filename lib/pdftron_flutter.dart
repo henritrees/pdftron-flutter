@@ -36,7 +36,7 @@ class PdftronFlutter {
   }
 
   static Future<void> openDocument(String document,
-      {String password, Config config}) {
+      {String? password, Config? config}) {
     return _channel.invokeMethod(Functions.openDocument, <String, dynamic>{
       Parameters.document: document,
       Parameters.password: password,
@@ -49,7 +49,7 @@ class PdftronFlutter {
         Functions.importAnnotations, <String, dynamic>{Parameters.xfdf: xfdf});
   }
 
-  static Future<String> exportAnnotations(List<Annot> annotationList) async {
+  static Future<String?> exportAnnotations(List<Annot> annotationList) async {
     if (annotationList == null) {
       return _channel.invokeMethod(Functions.exportAnnotations);
     } else {
@@ -125,19 +125,19 @@ class PdftronFlutter {
     });
   }
 
-  static Future<String> saveDocument() {
+  static Future<String?> saveDocument() {
     return _channel.invokeMethod(Functions.saveDocument);
   }
 
-  static Future<bool> commitTool() {
+  static Future<bool?> commitTool() {
     return _channel.invokeMethod(Functions.commitTool);
   }
 
-  static Future<int> getPageCount() {
+  static Future<int?> getPageCount() {
     return _channel.invokeMethod(Functions.getPageCount);
   }
 
-  static Future<bool> handleBackButton() {
+  static Future<bool?> handleBackButton() {
     return _channel.invokeMethod(Functions.handleBackButton);
   }
 
@@ -149,11 +149,11 @@ class PdftronFlutter {
     return _channel.invokeMethod(Functions.redo);
   }
 
-  static Future<bool> canUndo() {
+  static Future<bool?> canUndo() {
     return _channel.invokeMethod(Functions.canUndo);
   }
   
-  static Future<bool> canRedo() {
+  static Future<bool?> canRedo() {
     return _channel.invokeMethod(Functions.canRedo);
   }
 
@@ -177,12 +177,12 @@ class PdftronFlutter {
     return _channel.invokeMethod(Functions.rotateCounterClockwise);
   }
 
-  static Future<bool> setCurrentPage(int pageNumber) {
+  static Future<bool?> setCurrentPage(int pageNumber) {
     return _channel.invokeMethod(Functions.setCurrentPage,
         <String, dynamic>{Parameters.pageNumber: pageNumber});
   }
 
-  static Future<String> getDocumentPath() {
+  static Future<String?> getDocumentPath() {
     return _channel.invokeMethod(Functions.getDocumentPath);
   }
 
@@ -218,7 +218,7 @@ class PdftronFlutter {
     return _channel.invokeMethod(Functions.deleteAllAnnotations);
   }
 
-  static Future<String> exportAsImage(int pageNumber, int dpi, String exportFormat) {
+  static Future<String?> exportAsImage(int pageNumber, int dpi, String exportFormat) {
     return _channel.invokeMethod(Functions.exportAsImage, <String, dynamic>{
       Parameters.pageNumber: pageNumber,
       Parameters.dpi: dpi,
@@ -226,8 +226,12 @@ class PdftronFlutter {
     });
   }
 
-  static Future<String> exportAsImageFromFilePath(int pageNumber, int dpi, String exportFormat, String filePath) {
-    return _channel.invokeMethod(Functions.exportAsImageFromFilePath, <String, dynamic>{
+  /// Export a PDF page to an image format defined in ExportFormat.
+  /// The page is taken from the PDF at the given filepath.
+  static Future<String?> exportAsImageFromFilePath(
+      int? pageNumber, int? dpi, String? exportFormat, String? filePath) {
+    return _channel
+        .invokeMethod(Functions.exportAsImageFromFilePath, <String, dynamic>{
       Parameters.pageNumber: pageNumber,
       Parameters.dpi: dpi,
       Parameters.exportFormat: exportFormat,
@@ -299,23 +303,86 @@ class PdftronFlutter {
         <String, dynamic>{Parameters.requestedOrientation: requestedOrientation});
   }
 
-  static Future<bool> gotoPreviousPage() {
+  static Future<bool?> gotoPreviousPage() {
     return _channel.invokeMethod(Functions.gotoPreviousPage);
   }
 
-  static Future<bool> gotoNextPage() {
+  static Future<bool?> gotoNextPage() {
     return _channel.invokeMethod(Functions.gotoNextPage);
   }
 
-  static Future<bool> gotoFirstPage() {
+  static Future<bool?> gotoFirstPage() {
     return _channel.invokeMethod(Functions.gotoFirstPage);
   }
 
-  static Future<bool> gotoLastPage() {
+  static Future<bool?> gotoLastPage() {
     return _channel.invokeMethod(Functions.gotoLastPage);
   }
 
-  static Future<int> getCurrentPage() {
+  static Future<int?> getCurrentPage() {
     return _channel.invokeMethod(Functions.getCurrentPage);
+  }
+
+  /// Sets the zoom scale in the current document viewer with a zoom center.
+  ///
+  /// zoom: the zoom ratio to be set
+  /// x: the x-coordinate of the zoom center
+  /// y: the y-coordinate of the zoom center
+  static Future<void> zoomWithCenter(double zoom, int x, int y) {
+    return _channel.invokeMethod(Functions.zoomWithCenter,
+        <String, dynamic>{"zoom": zoom, "x": x, "y": y});
+  }
+  
+  /// Zoom the viewer to a specific rectangular area in a page.
+  ///
+  /// pageNumber: the page number of the zooming area (1-indexed)
+  /// rect: The rectangular area with keys x1 (left), y1(bottom), y1(right), y2(top). Coordinates are in double
+  static Future<void> zoomToRect(int pageNumber, Map<String, double> rect) {
+    return _channel.invokeMethod(Functions.zoomToRect, <String, dynamic>{
+      Parameters.pageNumber: pageNumber,
+      "x1": rect["x1"],
+      "y1": rect["y1"],
+      "x2": rect["x2"],
+      "y2": rect["y2"]
+    });
+  }
+  /// Returns the current zoom scale of current document viewer.
+  ///
+  /// Returns a Promise.
+  static Future<double?> getZoom() {
+    return _channel.invokeMethod(Functions.getZoom);
+  }
+
+  /// Sets the minimum and maximum zoom bounds of current viewer.
+  static Future<void> setZoomLimits(
+      String mode, double minimum, double maximum) {
+    return _channel.invokeMethod(Functions.setZoomLimits, <String, dynamic>{
+      'zoomLimitMode': mode,
+      'minimum': minimum,
+      'maximum': maximum,
+    });
+  }
+
+  /// Gets a list of absolute file paths to PDFs containing the saved signatures.
+  ///
+  /// Returns a promise
+  static Future<List<String>?> getSavedSignatures() {
+    return _channel.invokeMethod(Functions.getSavedSignatures);
+  }
+
+  /// Retrieves the absolute file path to the folder containing the saved signature PDFs.
+  /// For Android, to get the folder containing the saved signature JPGs, use getSavedSignatureJpgFolder.
+  ///
+  /// Returns a Promise.
+  static Future<String?> getSavedSignatureFolder() {
+    return _channel.invokeMethod(Functions.getSavedSignatureFolder);
+  }
+
+  /// Retrieves the absolute file path to the folder containing the saved signature JPGs. Android only.
+  /// To get the folder containing the saved signature PDFs, use getSavedSignatureFolder.
+  ///
+  /// Returns a Promise.
+  static Future<String?> getSavedSignatureJpgFolder() {
+    return _channel.invokeMethod(Functions.getSavedSignatureJpgFolder);
   }
 }

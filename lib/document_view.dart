@@ -3,7 +3,7 @@ part of pdftron;
 typedef void DocumentViewCreatedCallback(DocumentViewController controller);
 
 class DocumentView extends StatefulWidget {
-  const DocumentView({Key key, this.onCreated}) : super(key: key);
+  const DocumentView({Key? key, required this.onCreated}) : super(key: key);
 
   final DocumentViewCreatedCallback onCreated;
 
@@ -45,9 +45,6 @@ class _DocumentViewState extends State<DocumentView> {
   }
 
   void _onPlatformViewCreated(int id) {
-    if (widget.onCreated == null) {
-      return;
-    }
     widget.onCreated(new DocumentViewController._(id));
   }
 }
@@ -58,7 +55,7 @@ class DocumentViewController {
 
   final MethodChannel _channel;
 
-  Future<Rect> setCustomDataForAnnotation(Annot annotation, List<String> fieldNames) async {
+  Future<Rect?> setCustomDataForAnnotation(Annot annotation, List<String> fieldNames) async {
     return _channel.invokeMethod(Functions.setCustomDataForAnnotation,
         <String, dynamic>{Parameters.annotation: jsonEncode(annotation), Parameters.fieldNames: fieldNames});
   }
@@ -69,7 +66,7 @@ class DocumentViewController {
     return result == 'true';
   }
 
-  Future<void> openDocument(String document, {String password, Config config}) {
+  Future<void> openDocument(String document, {String? password, Config? config}) {
     return _channel.invokeMethod(Functions.openDocument, <String, dynamic>{
       Parameters.document: document,
       Parameters.password: password,
@@ -82,7 +79,7 @@ class DocumentViewController {
         Functions.importAnnotations, <String, dynamic>{Parameters.xfdf: xfdf});
   }
 
-  Future<String> exportAnnotations(List<Annot> annotationList) async {
+  Future<String?> exportAnnotations(List<Annot> annotationList) async {
     if (annotationList == null) {
       return _channel.invokeMethod(Functions.exportAnnotations);
     } else {
@@ -108,17 +105,17 @@ class DocumentViewController {
         <String, dynamic>{Parameters.annotation: jsonEncode(annotation)});
   }
 
-  Future<bool> hideAnnotation(Annot annotation) {
+  Future<bool?> hideAnnotation(Annot annotation) {
     return _channel.invokeMethod(Functions.hideAnnotation,
         <String, dynamic>{Parameters.annotation: jsonEncode(annotation)});
   }
 
-  Future<bool> hideAllAnnotations(int pageNumber) {
+  Future<bool?> hideAllAnnotations(int pageNumber) {
     return _channel.invokeMethod(Functions.hideAllAnnotations,
         <String, dynamic>{Parameters.pageNumber: pageNumber});
   }
 
-  Future<bool> showAnnotation(Annot annotation) {
+  Future<bool?> showAnnotation(Annot annotation) {
     return _channel.invokeMethod(Functions.showAnnotation,
         <String, dynamic>{Parameters.annotation: jsonEncode(annotation)});
   }
@@ -175,19 +172,19 @@ class DocumentViewController {
     });
   }
 
-  Future<String> saveDocument() {
+  Future<String?> saveDocument() {
     return _channel.invokeMethod(Functions.saveDocument);
   }
 
-  Future<bool> commitTool() {
+  Future<bool?> commitTool() {
     return _channel.invokeMethod(Functions.commitTool);
   }
 
-  Future<int> getPageCount() {
+  Future<int?> getPageCount() {
     return _channel.invokeMethod(Functions.getPageCount);
   }
 
-  Future<bool> handleBackButton() {
+  Future<bool?> handleBackButton() {
     return _channel.invokeMethod(Functions.handleBackButton);
   }
 
@@ -199,11 +196,11 @@ class DocumentViewController {
     return _channel.invokeMethod(Functions.redo);
   }
 
-  Future<bool> canUndo() {
+  Future<bool?> canUndo() {
     return _channel.invokeMethod(Functions.canUndo);
   }
   
-  Future<bool> canRedo() {
+  Future<bool?> canRedo() {
     return _channel.invokeMethod(Functions.canRedo);
   }
 
@@ -227,12 +224,12 @@ class DocumentViewController {
     return _channel.invokeMethod(Functions.rotateCounterClockwise);
   }
 
-  Future<bool> setCurrentPage(int pageNumber) {
+  Future<bool?> setCurrentPage(int pageNumber) {
     return _channel.invokeMethod(Functions.setCurrentPage,
         <String, dynamic>{Parameters.pageNumber: pageNumber});
   }
 
-  Future<String> getDocumentPath() {
+  Future<String?> getDocumentPath() {
     return _channel.invokeMethod(Functions.getDocumentPath);
   }
 
@@ -268,7 +265,7 @@ class DocumentViewController {
     return _channel.invokeMethod(Functions.deleteAllAnnotations);
   }
 
-  Future<String> exportAsImage(int pageNumber, int dpi, String exportFormat) {
+  Future<String?> exportAsImage(int pageNumber, int dpi, String exportFormat) {
     return _channel.invokeMethod(Functions.exportAsImage, <String, dynamic>{
       Parameters.pageNumber: pageNumber,
       Parameters.dpi: dpi,
@@ -276,6 +273,22 @@ class DocumentViewController {
     });
   }
 
+  /// Export a PDF page to an image format defined in ExportFormat.
+  /// The page is taken from the PDF at the given filepath.
+  Future<String?> exportAsImageFromFilePath(
+      int? pageNumber, int? dpi, String? exportFormat, String? filePath) {
+    return _channel
+        .invokeMethod(Functions.exportAsImageFromFilePath, <String, dynamic>{
+      Parameters.pageNumber: pageNumber,
+      Parameters.dpi: dpi,
+      Parameters.exportFormat: exportFormat,
+      Parameters.path: filePath
+    });
+  }
+
+  /// Displays the annotation tab of the existing list container.
+  ///
+  /// If this tab has been disabled, the method does nothing.
   Future<void> openAnnotationList() {
     return _channel.invokeMethod(Functions.openAnnotationList);
   }
@@ -334,23 +347,85 @@ class DocumentViewController {
     return _channel.invokeMethod(Functions.openNavigationLists);
   }
 
-  Future<bool> gotoPreviousPage() {
+  Future<bool?> gotoPreviousPage() {
     return _channel.invokeMethod(Functions.gotoPreviousPage);
   }
 
-  Future<bool> gotoNextPage() {
+  Future<bool?> gotoNextPage() {
     return _channel.invokeMethod(Functions.gotoNextPage);
   }
 
-  Future<bool> gotoFirstPage() {
+  Future<bool?> gotoFirstPage() {
     return _channel.invokeMethod(Functions.gotoFirstPage);
   }
 
-  Future<bool> gotoLastPage() {
+  Future<bool?> gotoLastPage() {
     return _channel.invokeMethod(Functions.gotoLastPage);
   }
 
-  Future<int> getCurrentPage() {
+  Future<int?> getCurrentPage() {
     return _channel.invokeMethod(Functions.getCurrentPage);
+  }
+
+  /// Sets the zoom scale in the current document viewer with a zoom center.
+  ///
+  /// zoom: the zoom ratio to be set
+  /// x: the x-coordinate of the zoom center
+  /// y: the y-coordinate of the zoom center
+  Future<void> zoomWithCenter(double zoom, int x, int y) {
+    return _channel.invokeMethod(Functions.zoomWithCenter,
+        <String, dynamic>{"zoom": zoom, "x": x, "y": y});
+  }
+
+  /// Zoom the viewer to a specific rectangular area in a page.
+  ///
+  /// pageNumber: the page number of the zooming area (1-indexed)
+  /// rect: The rectangular area with keys x1 (left), y1(bottom), y1(right), y2(top). Coordinates are in double
+  Future<void> zoomToRect(int pageNumber, Map<String, double> rect) {
+    return _channel.invokeMethod(Functions.zoomToRect, <String, dynamic>{
+      Parameters.pageNumber: pageNumber,
+      "x1": rect["x1"],
+      "y1": rect["y1"],
+      "x2": rect["x2"],
+      "y2": rect["y2"]
+    });
+  }
+  /// Returns the current zoom scale of current document viewer.
+  ///
+  /// Returns a Promise.
+  Future<double?> getZoom() {
+    return _channel.invokeMethod(Functions.getZoom);
+  }
+
+  /// Sets the minimum and maximum zoom bounds of current viewer.
+  Future<void> setZoomLimits(String mode, double minimum, double maximum) {
+    return _channel.invokeMethod(Functions.setZoomLimits, <String, dynamic>{
+      'zoomLimitMode': mode,
+      'minimum': minimum,
+      'maximum': maximum,
+    });
+  }
+
+  /// Gets a list of absolute file paths to PDFs containing the saved signatures.
+  ///
+  /// Returns a promise
+  Future<List<String>?> getSavedSignatures() {
+    return _channel.invokeMethod(Functions.getSavedSignatures);
+  }
+
+  /// Retrieves the absolute file path to the folder containing the saved signature PDFs.
+  /// For Android, to get the folder containing the saved signature JPGs, use getSavedSignatureJpgFolder.
+  ///
+  /// Returns a Promise.
+  Future<String?> getSavedSignatureFolder() {
+    return _channel.invokeMethod(Functions.getSavedSignatureFolder);
+  }
+
+  /// Retrieves the absolute file path to the folder containing the saved signature JPGs. Android only.
+  /// To get the folder containing the saved signature PDFs, use getSavedSignatureFolder.
+  ///
+  /// Returns a Promise.
+  Future<String?> getSavedSignatureJpgFolder() {
+    return _channel.invokeMethod(Functions.getSavedSignatureJpgFolder);
   }
 }
